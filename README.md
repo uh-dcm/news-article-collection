@@ -6,5 +6,7 @@
 
 ## Cronjob example
 
+```
 */5 * * * * cd ~/news-article-collection/; python3 collect.py
 */30 * * * * cd ~/news-article-collection/; python3 progress.py
+```
