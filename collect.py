@@ -35,7 +35,7 @@ for feed_url in open("feeds.txt"):
         link = clean_url( link )
 
         ## check if we already have this URL
-        has_url = database.select( [ database.urls ] ).where( database.urls.c.url == link )
+        has_url = database.urls.select().where( database.urls.c.url == link )
         has_url = database.connection.execute( has_url )
 
         if not has_url.fetchone(): ## have not collected item yet
@@ -45,4 +45,8 @@ for feed_url in open("feeds.txt"):
                 url = link
             )
 
+            print( link )
+
             database.connection.execute( new_url )
+
+    database.connection.commit()
