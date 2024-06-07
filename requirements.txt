@@ -2,3 +2,4 @@ newspaper4k
 sqlalchemy
 feedparser
 requests
+lxml_html_clean
