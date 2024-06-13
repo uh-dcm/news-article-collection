@@ -18,7 +18,7 @@ def clean_url( url ):
     ])
     return newurl
 
-for feed_url in open("feeds.txt"):
+for feed_url in open("data/feeds.txt"):
 
     feed_url = feed_url.strip()
     feed = feedparser.parse( feed_url )
