@@ -3,7 +3,7 @@ import datetime
 from sqlalchemy import *
 
 #engine = create_engine('sqlite:///data.db', echo = True)
-engine = create_engine('sqlite:///data.db', echo = False)
+engine = create_engine('sqlite:///data/data.db', echo = False)
 meta = MetaData()
 connection = engine.connect()
 
