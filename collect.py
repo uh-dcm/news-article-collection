@@ -1,3 +1,4 @@
+import sys
 import requests
 import feedparser
 from urllib.parse import urlparse, parse_qs, urlunparse, urlencode
@@ -5,28 +6,40 @@ from urllib.parse import urlparse, parse_qs, urlunparse, urlencode
 import database
 
 def clean_url( url ):
-    parsed = urlparse(url)
-    qd = parse_qs(parsed.query, keep_blank_values=True)
-    filtered = dict( (k, v) for k, v in qd.items() if not k.startswith('utm_'))
-    newurl = urlunparse([
-        parsed.scheme,
-        parsed.netloc,
-        parsed.path,
-        parsed.params,
-        urlencode(filtered, doseq=True), # query string
-        parsed.fragment
-    ])
-    return newurl
+    try:
+        parsed = urlparse(url)
+        qd = parse_qs(parsed.query, keep_blank_values=True)
+        filtered = dict( (k, v) for k, v in qd.items() if not k.startswith('utm_'))
+        newurl = urlunparse([
+            parsed.scheme,
+            parsed.netloc,
+            parsed.path,
+            parsed.params,
+            urlencode(filtered, doseq=True), # query string
+            parsed.fragment
+        ])
+        return newurl
+    except Exception as e:
+        print(f"Error cleaning URL {url}: {e}", file=sys.stderr)
+        return url
 
 for feed_url in open("data/feeds.txt"):
 
     feed_url = feed_url.strip()
-    feed = feedparser.parse( feed_url )
+    try:
+        feed = feedparser.parse( feed_url )
+    except Exception as e:
+        print(f"Error parsing feed {feed_url}: {e}", file=sys.stderr)
+        continue
 
     for item in feed['items']:
         link = item['link']
 
-        res = requests.get( link, allow_redirects = False )
+        try:
+            res = requests.get( link, allow_redirects = False )
+        except requests.RequestException as e:
+            print(f"Error fetching URL {link}: {e}", file=sys.stderr)
+            continue
 
         ## some services contain a redirection
         if 300 <= res.status_code < 400: ## detect redirections
@@ -35,18 +48,26 @@ for feed_url in open("data/feeds.txt"):
         link = clean_url( link )
 
         ## check if we already have this URL
-        has_url = database.urls.select().where( database.urls.c.url == link )
-        has_url = database.connection.execute( has_url )
+        try:
+            has_url = database.urls.select().where( database.urls.c.url == link )
+            has_url = database.connection.execute( has_url )
+        except Exception as e:
+            print(f"Error checking URL in database {link}: {e}", file=sys.stderr)
+            continue
 
         if not has_url.fetchone(): ## have not collected item yet
+            try:
+                new_url = database.urls.insert().values(
+                    feed = feed_url,
+                    url = link
+                )
 
-            new_url = database.urls.insert().values(
-                feed = feed_url,
-                url = link
-            )
+                print( link )
+                database.connection.execute( new_url )
+            except Exception as e:
+                print(f"Error inserting URL {link} into database: {e}", file=sys.stderr)
 
-            print( link )
-
-            database.connection.execute( new_url )
-
-    database.connection.commit()
+    try:
+        database.connection.commit()
+    except Exception as e:
+        print(f"Error committing collection: {e}", file=sys.stderr)

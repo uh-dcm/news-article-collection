@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import *
+from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, DateTime, Boolean, ForeignKey
 
 #engine = create_engine('sqlite:///data.db', echo = True)
 engine = create_engine('sqlite:///data/data.db', echo = False)
