@@ -3,24 +3,42 @@ from newspaper import Article
 
 import database
 
+
+"""
+Log the missing attributes of the article object. The text attribute is occasionally empty due to
+an issue in the newspaper library.
+"""
+def get_missing_article_attributes(article, url):
+    required_attributes = ['html', 'publish_date', 'text']
+    missing_attributes = [attr for attr in required_attributes if not getattr(article, attr, None)]
+    return missing_attributes
+
 def download_and_parse( url ):
     try:
         article = Article( url )
         article.download()
         article.parse()
+    except Exception as e:
+        print(f"Error downloading or parsing article {url}: {e}", file=sys.stderr)
+        return None
 
+    missing_attributes = get_missing_article_attributes(article, url)
+    if missing_attributes:
+        print(f"Error parsing url attributes ({url}): missing {', '.join(missing_attributes)}", file=sys.stderr)
+
+    try:
         new_article = database.articles.insert().values(
             url = url,
             html = article.html,
             full_text = article.text,
             time = article.publish_date
         )
-
         new_article = database.connection.execute( new_article )
-        return new_article.lastrowid
     except Exception as e:
-        print(f"Error downloading and parsing article {url}: {e}", file=sys.stderr)
+        print(f"Error inserting an article ({url}) to database: {e}", file=sys.stderr)
         return None
+
+    return new_article.lastrowid
 
 def process_urls():
     try:

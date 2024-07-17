@@ -28,8 +28,14 @@ for feed_url in open("data/feeds.txt"):
     feed_url = feed_url.strip()
     try:
         feed = feedparser.parse( feed_url )
+
+        # Feedparser flags non-well-formed XMLs and character encoding errors using the "bozo" bit
+        if feed.bozo:
+            bozo_exception = feed.bozo_exception
+            exception_msg = bozo_exception.getMessage()
+            print(f"Error parsing feed ({feed_url}): {exception_msg}", file=sys.stderr)
     except Exception as e:
-        print(f"Error parsing feed {feed_url}: {e}", file=sys.stderr)
+        print(f"Error with the feedparser library: {e}", file=sys.stderr)
         continue
 
     for item in feed['items']:
