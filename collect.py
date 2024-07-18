@@ -32,8 +32,10 @@ for feed_url in open("data/feeds.txt"):
         # Feedparser flags non-well-formed XMLs and character encoding errors using the "bozo" bit
         if feed.bozo:
             bozo_exception = feed.bozo_exception
-            exception_msg = bozo_exception.getMessage()
-            print(f"Error parsing feed ({feed_url}): {exception_msg}", file=sys.stderr)
+            if hasattr(bozo_exception, 'getMessage'):
+                print(f"Error parsing feed ({feed_url}): {bozo_exception.getMessage()}", file=sys.stderr)
+            else:
+                print(f"Error parsing feed ({feed_url}): {bozo_exception}", file=sys.stderr)
     except Exception as e:
         print(f"Error with the feedparser library: {e}", file=sys.stderr)
         continue
