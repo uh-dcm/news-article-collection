@@ -3,13 +3,12 @@ from newspaper import Article
 
 import database
 
-
-"""
-Log the missing attributes of the article object. The text attribute is occasionally empty due to
-an issue in the newspaper library.
-"""
 def get_missing_article_attributes(article, url):
-    required_attributes = ['html', 'publish_date', 'text']
+    """
+    Log the missing attributes of the article object.
+    The text attribute is occasionally empty due to an issue in the newspaper library.
+    """
+    required_attributes = ['html', 'publish_date', 'text', 'title']
     missing_attributes = [attr for attr in required_attributes if not getattr(article, attr, None)]
     return missing_attributes
 
@@ -29,6 +28,7 @@ def download_and_parse( url ):
     try:
         new_article = database.articles.insert().values(
             url = url,
+            title = article.title,
             html = article.html,
             full_text = article.text,
             time = article.publish_date
