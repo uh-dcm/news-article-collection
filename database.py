@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import *
+from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, DateTime, Boolean, ForeignKey
 
 #engine = create_engine('sqlite:///data.db', echo = True)
 engine = create_engine('sqlite:///data/data.db', echo = False)
@@ -19,6 +19,7 @@ urls = Table('urls', meta,
 articles = Table( 'articles', meta,
     Column('id', Integer, primary_key = True),
     Column('url', String),
+    Column('title', String),
     Column('html', String),
     Column('full_text', String),
     Column('time', DateTime),
